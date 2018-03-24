@@ -1,14 +1,23 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+const express = require('express');
+const  path = require('path');
+const favicon = require('serve-favicon');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+// const session = require('session');
+// const MongoStore = require('connect-mongo')(session);
+const passport = require('passport');
 
-var index = require('./routes/index');
-var users = require('./routes/users');
+const index = require('./routes/index');
+const users = require('./routes/users');
 
-var app = express();
+const app = express();
+
+// config
+require('dotenv').config();
+require('./configs/db.config');
+// require('./configs/passport.config').setup(passport);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
