@@ -6,5 +6,6 @@ module.exports = [
   "LGTB",
   "Animals",
   "Nationalisms",
-  "Art"
+  "Art",
+  "Ping Pong"
 ]
