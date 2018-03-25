@@ -5,19 +5,21 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-// const session = require('session');
-// const MongoStore = require('connect-mongo')(session);
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 
 
-const users = require('./routes/users.routes');
+const userRoutes = require('./routes/user.routes');
+const sessionRoutes = require('./routes/session.routes');
+const campaignRoutes = require('./routes/campaign.routes');
 
 const app = express();
 
 // config
 require('dotenv').config();
 require('./configs/db.config');
-// require('./configs/passport.config').setup(passport);
+require('./configs/passport.config').setup(passport);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -30,8 +32,28 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret: process.env.COOKIE_SECRET || 'Super Secret',
+  resave: true,
+  saveUninitialized: true,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 1000
+  },
+  store: new MongoStore({
+    mongooseConnection: mongoose.connection,
+    ttl: 24 * 60 * 60
+  })
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.use('/users', users );
+
+
+app.use('/users', userRoutes );
+app.use('/sessions', sessionRoutes );
+app.use('/campaigns', campaignRoutes );
 
 
 // catch 404 and forward to error handler
