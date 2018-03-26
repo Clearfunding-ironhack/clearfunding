@@ -1,12 +1,15 @@
 const ApiError = require('../models/api-error.model');
 const User = require('../models/user.model');
 const Campaign = require('../models/campaign.model');
+const Donation = require('../models/donation.model');
 const mongoose = require('mongoose');
 const paypal = require('paypal-rest-sdk')
 
 
 module.exports.pay = (req, res, next) => {
-
+    const {name, price, currency, quantity} = req.body;
+    const newDonation = new Donation({name, price, currency, quantity});
+    console.log(newDonation)
     const create_payment_json = {
         "intent": "sale",
         "payer": {
@@ -19,21 +22,22 @@ module.exports.pay = (req, res, next) => {
         "transactions": [{
             "item_list": {
                 "items": [{
-                    "name": "Red Sox Hat",
+                    "name": newDonation.name,
                     "sku": "001",
-                    "price": "25.00",
-                    "currency": "USD",
-                    "quantity": 1
+                    "price": newDonation.price,
+                    "currency": newDonation.currency,
+                    "quantity": newDonation.quantity
                 }]
             },
             "amount": {
-                "currency": "USD",
-                "total": "25.00"
+                "currency": newDonation.currency,
+                "total": newDonation.price
             },
             "description": "Hat for the best team ever"
         }]
   }
   paypal.payment.create(create_payment_json, function (error, payment) {
+      console.log(create_payment_json)
     if (error) {
         console.log(error)
         throw error;
@@ -51,6 +55,7 @@ module.exports.pay = (req, res, next) => {
 module.exports.executePayment = (req, res) => {
     const payerId = req.query.PayerID;
     const paymentId = req.query.paymentId;
+    
     console.log(payerId)
     console.log(paymentId)
     paypal.configure({
@@ -58,15 +63,9 @@ module.exports.executePayment = (req, res) => {
         'client_id': 'Aa7GX-HChZfUEUjgFYIJqTS64BQHABs_gUlW3bqLnPut9kT9Tk_naKAaccYazKn-Pyb-a-7biWsLJ4tb',
         'client_secret': 'EEXpsbrP5AVCqxmqK4mLuhHs2o7bKsSjwGydmohV4z04iT-psvRN5P6q_4cDKj7VhUW1uU0FqkzGjtej'
       });
-    const execute_payment_json = {
-      "payer_id": payerId,
-      "transactions": [{
-          "amount": {
-              "currency": "USD",
-              "total": "25.00"
-          }
-      }]
-    };
+      const execute_payment_json = {
+        "payer_id": payerId,
+      };
 
     paypal.payment.execute(paymentId, execute_payment_json, function (error, payment) {
       if (error) {
