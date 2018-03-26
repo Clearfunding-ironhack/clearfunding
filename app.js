@@ -8,17 +8,21 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
+const paypal = require('paypal-rest-sdk')
+
 
 
 const userRoutes = require('./routes/user.routes');
 const sessionRoutes = require('./routes/session.routes');
 const campaignRoutes = require('./routes/campaign.routes');
+const donationRoutes = require('./routes/donation.routes');
 
 const app = express();
 
 // config
 require('dotenv').config();
 require('./configs/db.config');
+require('./configs/paypal.config');
 require('./configs/passport.config').setup(passport);
 
 // view engine setup
@@ -49,12 +53,16 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-
 app.use('/users', userRoutes );
 app.use('/sessions', sessionRoutes );
 app.use('/campaigns', campaignRoutes );
+app.use('/', donationRoutes );
 
+paypal.configure({
+  'mode': 'sandbox', //sandbox or live
+  'client_id': 'Aa7GX-HChZfUEUjgFYIJqTS64BQHABs_gUlW3bqLnPut9kT9Tk_naKAaccYazKn-Pyb-a-7biWsLJ4tb',
+  'client_secret': 'EEXpsbrP5AVCqxmqK4mLuhHs2o7bKsSjwGydmohV4z04iT-psvRN5P6q_4cDKj7VhUW1uU0FqkzGjtej'
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

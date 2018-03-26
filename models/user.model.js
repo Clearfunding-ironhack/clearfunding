@@ -59,20 +59,20 @@ const userSchema = new mongoose.Schema(
 
 });
 
-// userSchema.pre('update', function () {
-//   console.log("ESTOY AQUI")
-//   console.log(user);
-//   console.log(user.password);
-//   const user = this;
-//   bcrypt.genSalt(SALT_WORK_FACTOR)
-//       .then(salt => {
-//           bcrypt.hash(user.password, salt)
-//               .then(hash => {
-//                   user.password = hash;
-//               });
-//       })
-//       .catch(error => console.log("Pete"));
-// });
+userSchema.pre('update', function () {
+  console.log("ESTOY AQUI")
+  console.log(user);
+  console.log(user.password);
+  const user = this;
+  bcrypt.genSalt(SALT_WORK_FACTOR)
+      .then(salt => {
+          bcrypt.hash(user.password, salt)
+              .then(hash => {
+                  user.password = hash;
+              });
+      })
+      .catch(error => console.log("Pete"));
+});
 
 userSchema.pre('save', function (next) {
   const user = this;

@@ -61,22 +61,28 @@ module.exports.list = (req, res, next) => {
         } else {
           (new ApiError(error.message, 500));
         }
-      });
+      })
   }
 
-  module.exports.edit = (req, res, next) => {
+  module.exports.changePassword = (req, res, next) => {
     const id = req.params.id;
-    const updatedUser = req.body
-    User.findOne({'id': id })
-      .then(user => {
-        if (user) {
-        user = updatedUser;
-        user.Save()
-        .then("funciona")
-        .catch("No funciona")}
+    User.findById(id, function (err, user) {
+      if (user) {
+          user.save({id, password: req.body.password})
+            .then((userPasswordUpdated) => {
+            res.status(201).json(userPasswordUpdated);
+        }).catch(error => {
+            if (error instanceof mongoose.Error.ValidationError) {
+                console.log(error);
+                next(new ApiError(error.errors));
+            } else {
+                next(new ApiError(error.message, 500));
+            }
+        });
       }
-    )
+    })
   }
+
 
   module.exports.delete = (req, res, next) => {
     const id = req.params.id;
