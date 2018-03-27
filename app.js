@@ -60,9 +60,10 @@ app.use('/campaigns', campaignRoutes );
 app.use('/donations', donationRoutes );
 
 paypal.configure({
-  'mode': 'sandbox', //sandbox or live
-  'client_id': 'Aa7GX-HChZfUEUjgFYIJqTS64BQHABs_gUlW3bqLnPut9kT9Tk_naKAaccYazKn-Pyb-a-7biWsLJ4tb',
-  'client_secret': 'EEXpsbrP5AVCqxmqK4mLuhHs2o7bKsSjwGydmohV4z04iT-psvRN5P6q_4cDKj7VhUW1uU0FqkzGjtej'
+    'mode': 'sandbox', //sandbox or live
+    'client_id': process.env.PAYPAL_CLIENT_ID,
+    'client_secret': process.env.PAYPAL_CLIENT_SECRET
+  
 });
 
 // catch 404 and forward to error handler

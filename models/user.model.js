@@ -22,8 +22,8 @@ const userSchema = new mongoose.Schema(
     type: String,
     enum: INTEREST_TYPES
   }],
-  paypalAccount: {
-    type: Number,
+  PayerID: {
+    type: String,
   },
   DNI: {
     type: String,
@@ -45,7 +45,10 @@ const userSchema = new mongoose.Schema(
   },
   committedAmount: {
     type: 'Number'
-  }
+  },
+  paymentTokens: [{
+    type: 'String'
+  }]
 }, {
   timestamps: true,
   toJSON: {

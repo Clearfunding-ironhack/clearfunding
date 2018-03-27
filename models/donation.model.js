@@ -11,9 +11,13 @@ const donationSchema = new mongoose.Schema(
   currency: {
     type: String
   },
-  campaignId: {
-    type: mongoose.Schema.Types.String,
+  campaign: {
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Campaign'
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   PayerID: {
     type: String
