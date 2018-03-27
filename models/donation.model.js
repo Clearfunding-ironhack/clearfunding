@@ -13,7 +13,11 @@ const donationSchema = new mongoose.Schema(
   },
   quantity: {
     type: Number, 
-  } 
+  },
+  campaignId: {
+    type: mongoose.Schema.Types.String,
+    ref: 'Campaign'
+  }
 }, {
   timestamps: true,
   toJSON: {

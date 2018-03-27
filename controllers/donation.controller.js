@@ -7,8 +7,16 @@ const paypal = require('paypal-rest-sdk')
 
 
 module.exports.pay = (req, res, next) => {
-    const {name, price, currency, quantity} = req.body;
-    const newDonation = new Donation({name, price, currency, quantity});
+    // const {name, price, currency, quantity} = req.body;
+    const name = req.body.name;
+    const price = req.body.price;
+    const currency = req.body.currency;
+    const quantity = req.body.quantity;
+    const campaignId = req.params.id;
+    
+    console.log(req.params)
+    
+    const newDonation = new Donation({name, price, currency, quantity, campaignId});
     console.log(newDonation)
     const create_payment_json = {
         "intent": "sale",
@@ -16,8 +24,8 @@ module.exports.pay = (req, res, next) => {
             "payment_method": "paypal"
         },
         "redirect_urls": {
-            "return_url": "http://localhost:3000/succes",
-            "cancel_url": "http://localhost:3000/cancel"
+            "return_url": "http://localhost:3000/donations/success",
+            "cancel_url": "http://localhost:3000/donations/cancel"
         },
         "transactions": [{
             "item_list": {
@@ -49,7 +57,7 @@ module.exports.pay = (req, res, next) => {
           }
         }
     }
-  });  
+  });
 }
 
 module.exports.executePayment = (req, res) => {
@@ -74,7 +82,6 @@ module.exports.executePayment = (req, res) => {
       } else {
           console.log(JSON.stringify(payment));
           res.send('Success');
-          console.log("HOLaaaasdasboasbcihsabcias")
       }
   });
   };

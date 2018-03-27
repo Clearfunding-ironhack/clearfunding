@@ -56,7 +56,7 @@ app.use(passport.session());
 app.use('/users', userRoutes );
 app.use('/sessions', sessionRoutes );
 app.use('/campaigns', campaignRoutes );
-app.use('/', donationRoutes );
+app.use('/donations', donationRoutes );
 
 paypal.configure({
   'mode': 'sandbox', //sandbox or live
