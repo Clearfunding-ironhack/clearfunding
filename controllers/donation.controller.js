@@ -44,7 +44,7 @@ module.exports.pay = (req, res, next) => {
                 "currency": newDonation.currency,
                 "total": newDonation.price
             },
-            "description": "Hat for the best team ever"
+            "description": "Payment"
         }]
   }
   paypal.payment.create(create_payment_json, function (error, payment) {
@@ -102,8 +102,7 @@ module.exports.executePayment = (req, res) => {
       } else {
           console.log(payment)
           console.log(JSON.stringify(payment));
-          console.log(payment.transactions[0].payee.email)
-          
+        
           Donation.findOneAndUpdate({paymentToken: paymentToken}, 
             {$set: {paymentId: paymentId, PayerID: payerId, state: payment.state, payerMail: payment.payer.payer_info.email, payedMail:payment.transactions[0].payee.email}}, {upsert: true}, function(err,doc) {
             if (err) { throw err; }
