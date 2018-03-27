@@ -11,9 +11,29 @@ const donationSchema = new mongoose.Schema(
   currency: {
     type: String
   },
-  quantity: {
-    type: Number, 
-  } 
+  campaignId: {
+    type: mongoose.Schema.Types.String,
+    ref: 'Campaign'
+  },
+  PayerID: {
+    type: String
+  },
+  paymentId: {
+    type: String
+  },
+  paymentToken: {
+    type: String
+  },
+  state: {
+    type: String,
+    default: "Non approved"
+  },
+  payerMail: {
+    type: String
+  },
+  payedMail: {
+    type: String
+  }  
 }, {
   timestamps: true,
   toJSON: {

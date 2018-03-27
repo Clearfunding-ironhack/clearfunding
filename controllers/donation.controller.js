@@ -5,10 +5,21 @@ const Donation = require('../models/donation.model');
 const mongoose = require('mongoose');
 const paypal = require('paypal-rest-sdk')
 
-
 module.exports.pay = (req, res, next) => {
-    const {name, price, currency, quantity} = req.body;
-    const newDonation = new Donation({name, price, currency, quantity});
+
+    const name = req.body.name;
+    const price = req.body.price;
+    const currency = req.body.currency;
+    const campaignId = req.params.id;
+    const paymentToken = "";
+    const paymentId = "";
+    const PayerID = "";
+    const payerMail = "";
+    const payedMail = "";
+    
+    console.log(req.params)
+    
+    const newDonation = new Donation({name, price, currency, campaignId, paymentId, PayerID, payedMail});
     console.log(newDonation)
     const create_payment_json = {
         "intent": "sale",
@@ -16,7 +27,7 @@ module.exports.pay = (req, res, next) => {
             "payment_method": "paypal"
         },
         "redirect_urls": {
-            "return_url": "http://localhost:3000/succes",
+            "return_url": "http://localhost:3000/donations/success",
             "cancel_url": "http://localhost:3000/cancel"
         },
         "transactions": [{
@@ -26,14 +37,14 @@ module.exports.pay = (req, res, next) => {
                     "sku": "001",
                     "price": newDonation.price,
                     "currency": newDonation.currency,
-                    "quantity": newDonation.quantity
+                    "quantity": 1
                 }]
             },
             "amount": {
                 "currency": newDonation.currency,
                 "total": newDonation.price
             },
-            "description": "Hat for the best team ever"
+            "description": "Payment"
         }]
   }
   paypal.payment.create(create_payment_json, function (error, payment) {
@@ -46,18 +57,35 @@ module.exports.pay = (req, res, next) => {
           if(payment.links[i].rel === 'approval_url'){
             res.redirect(payment.links[i].href);
             console.log(payment.links[i].href)
+            var link = (payment.links[i].href)
+            let paymentToken = link.slice(-20);
+            newDonation.paymentToken = paymentToken
+            console.log(newDonation)
+            newDonation.save()
+            .then(() => {
+              res.status(201).json(donation)
+            })
+            .catch(error => {
+              if (error instanceof mongoose.Error.ValidationError) {
+                next(new ApiError(error.message));
+              } else {
+                (new ApiError(error.message, 500))
+              }
+            });
           }
         }
     }
-  });  
+  });
 }
 
 module.exports.executePayment = (req, res) => {
+    const paymentToken = req.query.token;
     const payerId = req.query.PayerID;
     const paymentId = req.query.paymentId;
-    
+    console.log(req.query);
     console.log(payerId)
     console.log(paymentId)
+    console.log(typeof paymentToken)
     paypal.configure({
         'mode': 'sandbox', //sandbox or live
         'client_id': 'Aa7GX-HChZfUEUjgFYIJqTS64BQHABs_gUlW3bqLnPut9kT9Tk_naKAaccYazKn-Pyb-a-7biWsLJ4tb',
@@ -72,9 +100,15 @@ module.exports.executePayment = (req, res) => {
           console.log(error.response);
           throw error;
       } else {
+          console.log(payment)
           console.log(JSON.stringify(payment));
+        
+          Donation.findOneAndUpdate({paymentToken: paymentToken}, 
+            {$set: {paymentId: paymentId, PayerID: payerId, state: payment.state, payerMail: payment.payer.payer_info.email, payedMail:payment.transactions[0].payee.email}}, {upsert: true}, function(err,doc) {
+            if (err) { throw err; }
+            else { console.log("Updated"); }
+          });
           res.send('Success');
-          console.log("HOLaaaasdasboasbcihsabcias")
       }
-  });
+  })
   };
