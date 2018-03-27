@@ -23,6 +23,7 @@ const app = express();
 require('dotenv').config();
 require('./configs/db.config');
 require('./configs/paypal.config');
+require('./configs/environment.config');
 require('./configs/passport.config').setup(passport);
 
 // view engine setup
