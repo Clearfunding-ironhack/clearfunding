@@ -40,10 +40,10 @@ const userSchema = new mongoose.Schema(
     type: mongoose.Schema.Types.ObjectId,
     ref:'Campaigns'
   },
-  disbursedAmount: {
+  committedAmount: {
     type: 'Number'
   },
-  committedAmount: {
+  disbursedAmount: {
     type: 'Number'
   },
   paymentTokens: [{

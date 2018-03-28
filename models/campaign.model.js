@@ -14,7 +14,12 @@ const campaignSchema = new mongoose.Schema(
     type: Number
   },
   amountRaised: {
-    type: Number
+    type: Number,
+    default: 0
+  },
+  achieved: {
+    type: Boolean,
+    default: false
   },
   description: {
     type: String
@@ -30,6 +35,10 @@ const campaignSchema = new mongoose.Schema(
     type: String,
     enum: INTEREST_TYPES
   },
+  paymentTokens: [{
+    type: String,
+    default: []
+  }],
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref:'User'

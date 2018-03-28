@@ -5,12 +5,14 @@ const Donation = require('../models/donation.model');
 const mongoose = require('mongoose');
 const paypal = require('paypal-rest-sdk');
 
+
+
 module.exports.pay = (req, res, next) => {
 
     const name = req.body.name;
     const price = req.body.price;
     const currency = req.body.currency;
-    const campaign = req.params.id;
+    const campaignId = req.params.id;
     const paymentToken = "";
     const paymentId = "";
     const PayerID = "";
@@ -22,7 +24,7 @@ module.exports.pay = (req, res, next) => {
         name,
         price,
         currency,
-        campaign,
+        campaignId,
         paymentId,
         PayerID,
         payedMail,
@@ -71,7 +73,21 @@ module.exports.pay = (req, res, next) => {
                     newDonation.paymentToken = paymentToken
                     user.paymentTokens.push(newDonation.paymentToken)
                     user.save()
-    
+
+                    //save token to the campaign
+                    Campaign.findByIdAndUpdate(campaignId, {
+                            $push: {
+                                paymentTokens: newDonation.paymentToken
+                            }
+                        }, {
+                            new: true
+                        })
+                        .then(campaign => {
+                            console.log(campaign)
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        })
 
                     newDonation.save()
                         .then(() => {
@@ -100,54 +116,84 @@ module.exports.executePayment = (req, res) => {
     };
 
     paypal.payment.execute(paymentId, execute_payment_json, function (error, payment) {
-        if (error) {
-            console.log(error.response);
-            throw error;
-        } else {
-            console.log(JSON.stringify(payment));
 
-            Donation.findOneAndUpdate({
-                paymentToken: paymentToken
-            }, {
-                $set: {
-                    paymentId: paymentId,
-                    PayerID: payerId,
-                    state: payment.state,
-                    payerMail: payment.payer.payer_info.email,
-                    payedMail: payment.transactions[0].payee.email
-                }
-            }, {
-                upsert: true
-            }, function (err, doc) {
-                if (err) {
-                    throw err;
-                } else {
-                    console.log("Updated");
-                    console.log(doc);
-                }
-            });
-            console.log(req.user);
-            User.findOneAndUpdate({
-                    _id: req.user._id
+            if (error) {
+                console.log(error.response);
+                throw error;
+            } else {
+                console.log(JSON.stringify(payment));
+
+                Donation.findOneAndUpdate({
+                    paymentToken: paymentToken
                 }, {
                     $set: {
-                        PayerID: payerId
+                        paymentId: paymentId,
+                        PayerID: payerId,
+                        state: payment.state,
+                        payerMail: payment.payer.payer_info.email,
+                        payedMail: payment.transactions[0].payee.email
                     }
+                }, {
+                    upsert: true
+                }).then(() => {
+                    const amount = Number(payment.transactions[0].amount.total);
+                    function addAmount(paymentToken, amount) {
+                        Donation.findOne({
+                                paymentToken: paymentToken,
+                                state: "approved"
+                            })
+                            .then(donation => {
+                                if (donation) {
+                                    Campaign.findOneAndUpdate({
+                                            "paymentTokens": paymentToken
+                                
+                                        },{
+                                            $inc: {
+                                                "amountRaised": amount
+                                            }
+                                        }, {
+                                            new: true
+                                        })
+                                        .then(campaign => {
+                                            if (campaign) {
+                                                console.log(`This is the campaign with the amount raised: ${campaign}`);
+                                            } else {
+                                                console.log(error);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.log(error);
+                                        })
+                                } else {
+                                    console.log(error);
+                                }
+                            }).catch(error => {
+                                if (error instanceof mongoose.Error.ValidationError) {
+                                    console.log(error);
+                                } else {
+                                    (new ApiError(error.message, 500));
+                                }
+                            })
+                    }
+                    addAmount(paymentToken, amount)   
                 })
-                .then(user => {
-                    if (user) {
-                        console.log(`The updated user is ${user}`);
-                    } else {
-                        next(new ApiError("User not found", 404));
-                    }
-                }).catch(error => {
-                    if (error instanceof mongoose.Error.ValidationError) {
-                        next(new ApiError(error.message));
-                    } else {
-                        (new ApiError(error.message, 500));
-                    }
-                });
+                
+                .catch(error => console.log(error))
+            }
+
+                     
+
+            //Sumar amount a user.amountCommitted
+            //Calcular cuantos dias quedan de campaña (campaign.dueDate - Date.now).
             res.send('Success');
         }
-    })
+    )
 };
+
+// addAmount(donation) {
+//     const netAmount = payment.transactions[0].amount.total - payment.transactions[0].related_resources[0].transaction_fee.value;
+//     if(donation.status == "approved") {
+
+
+//     }
+// }
