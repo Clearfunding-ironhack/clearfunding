@@ -5,6 +5,37 @@ const Donation = require('../models/donation.model');
 const mongoose = require('mongoose');
 const paypal = require('paypal-rest-sdk');
 
+const getRemainingTime = deadline => {
+    let now = new Date(),
+        remainingTime = (new Date(deadline) - now + 1000) / 1000, // lo pasamos a segundos. El +1000 es porque tiene una demora de 1 segundo en empezar y para que no vaya 1 seg atrasado.
+        remainingSeconds = ('0' + Math.floor(remainingTime % 60)).slice(-2),
+        remainingMinutes = ('0' + Math.floor(remainingTime / 60 % 60)).slice(-2),
+        remainingHours = ('0' + Math.floor(remainingTime / 3600 % 24)).slice(-2),
+        remainingDays = Math.floor(remainingTime/ (3600 * 24));
+        
+        return {
+          remainingTime,
+          remainingSeconds,
+          remainingMinutes,
+          remainingHours, 
+          remainingDays
+        }
+  }
+  
+  const countdown = (deadline, finalMessage) => {
+    const timerUpdate = setInterval(() => {
+      let time = getRemainingTime(deadline);
+      console.log(`${time.remainingDays} days, ${time.remainingHours}hours, ${time.remainingMinutes} minutes and ${time.remainingSeconds} seconds left for the end of the campaign`);
+      
+      if(time.remainingTime <= 1) {
+        clearInterval(timerUpdate);
+        console.log(finalMessage);
+      }
+      
+    }, 1000)
+    
+  };
+
 
 
 module.exports.pay = (req, res, next) => {
@@ -137,7 +168,7 @@ module.exports.executePayment = (req, res) => {
                     upsert: true
                 }).then(() => {
                     const amount = Number(payment.transactions[0].amount.total);
-                    function addAmount(paymentToken, amount) {
+                    function addAmountToCampaign(paymentToken, amount) {
                         Donation.findOne({
                                 paymentToken: paymentToken,
                                 state: "approved"
@@ -157,6 +188,9 @@ module.exports.executePayment = (req, res) => {
                                         .then(campaign => {
                                             if (campaign) {
                                                 console.log(`This is the campaign with the amount raised: ${campaign}`);
+                                                let time = getRemainingTime(campaign.dueDate);
+                                                console.log(`${time.remainingDays} days, ${time.remainingHours}hours, ${time.remainingMinutes} minutes and ${time.remainingSeconds} seconds left for the end of the campaign`);  
+
                                             } else {
                                                 console.log(error);
                                             }
@@ -175,20 +209,62 @@ module.exports.executePayment = (req, res) => {
                                 }
                             })
                     }
-                    addAmount(paymentToken, amount)   
+                    //Sumar amount a user.amountCommitted
+                    function addAmountToUser(paymentToken, amount) {
+                        Donation.findOne({
+                                paymentToken: paymentToken,
+                                state: "approved"
+                            })
+                            .then(donation => {
+                                if (donation) {
+                                    User.findOneAndUpdate({
+                                            "paymentTokens": paymentToken
+                                
+                                        },{
+                                            $inc: {
+                                                "committedAmount": amount
+                                            }
+                                        }, {
+                                            new: true
+                                        })
+                                        .then(user => {
+                                            if (user) {
+                                                console.log(`This is the user with the amount raised: ${user}`);
+                                            } else {
+                                                console.log(error);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.log(error);
+                                        })
+                                } else {
+                                    console.log(error);
+                                }
+                            }).catch(error => {
+                                if (error instanceof mongoose.Error.ValidationError) {
+                                    console.log(error);
+                                } else {
+                                    (new ApiError(error.message, 500));
+                                }
+                            })
+                    }
+                    addAmountToCampaign(paymentToken, amount);
+                    addAmountToUser(paymentToken, amount);
+                    
+                    //Calcular cuantos dias quedan de campaña (campaign.dueDate - Date.now)
+
                 })
                 
                 .catch(error => console.log(error))
             }
 
-                     
-
-            //Sumar amount a user.amountCommitted
-            //Calcular cuantos dias quedan de campaña (campaign.dueDate - Date.now).
+            
             res.send('Success');
         }
     )
 };
+
+
 
 // addAmount(donation) {
 //     const netAmount = payment.transactions[0].amount.total - payment.transactions[0].related_resources[0].transaction_fee.value;
