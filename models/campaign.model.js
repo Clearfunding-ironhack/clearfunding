@@ -11,7 +11,8 @@ const campaignSchema = new mongoose.Schema(
     default: 'https://s3.eestatic.com/2015/11/10/enfoques/Fiscalia-Audiencia_Nacional-Independencia-Declaracion_unilateral_de_independencia-Investidura-Artur_Mas-Sedicion-Enfoques_78252331_158516_1706x960.jpg'
   },
   target: {
-    type: Number
+    type: Number,
+  
   },
   amountRaised: {
     type: Number,
@@ -22,7 +23,8 @@ const campaignSchema = new mongoose.Schema(
     default: false
   },
   description: {
-    type: String
+    type: String,
+  
   },
   location: {
     type: [ Number ],

@@ -4,6 +4,7 @@ const Campaign = require('../models/campaign.model');
 const Donation = require('../models/donation.model');
 const mongoose = require('mongoose');
 const paypal = require('paypal-rest-sdk');
+const paypalConfig = require('../configs/paypal.config');
 
 const getRemainingTime = deadline => {
     let now = new Date(),
@@ -21,6 +22,7 @@ const getRemainingTime = deadline => {
           remainingDays
         }
   }
+
   
   const countdown = (deadline, finalMessage) => {
     const timerUpdate = setInterval(() => {
@@ -67,6 +69,7 @@ const getRemainingTime = deadline => {
       }
   }
 
+
 module.exports.pay = (req, res, next) => {
 
     const name = req.body.name;
@@ -90,32 +93,8 @@ module.exports.pay = (req, res, next) => {
         payedMail,
         payerMail
     });
-    const create_payment_json = {
-        "intent": "sale",
-        "payer": {
-            "payment_method": "paypal"
-        },
-        "redirect_urls": {
-            "return_url": "http://localhost:3000/donations/success",
-            "cancel_url": "http://localhost:3000/cancel"
-        },
-        "transactions": [{
-            "item_list": {
-                "items": [{
-                    "name": newDonation.name,
-                    "sku": "001",
-                    "price": newDonation.price,
-                    "currency": newDonation.currency,
-                    "quantity": 1
-                }]
-            },
-            "amount": {
-                "currency": newDonation.currency,
-                "total": newDonation.price
-            },
-            "description": "Payment"
-        }]
-    }
+    const create_payment_json = paypalConfig.createPayment(newDonation);
+
     paypal.payment.create(create_payment_json, function (error, payment) {
         const user = req.user;
         if (error) {
@@ -216,10 +195,8 @@ module.exports.executePayment = (req, res) => {
                                         })
                                         .then(campaign => {
                                             if (campaign) {
-                                                console.log(`This is the campaign with the amount raised: ${campaign}`);
-                                                let time = getRemainingTime(campaign.dueDate);
-                                                console.log(`${time.remainingDays} days, ${time.remainingHours}hours, ${time.remainingMinutes} minutes and ${time.remainingSeconds} seconds left for the end of the campaign`);  
-
+                                                console.log(`${campaign.title}'s amount was updated`);
+    
                                             } else {
                                                 console.log(error);
                                             }
