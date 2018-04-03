@@ -30,7 +30,7 @@ const donationSchema = new mongoose.Schema(
   },
   state: {
     type: String,
-    default: "Non approved"
+    default: "Non approved" // poner un enum con las opciones
   },
   payerMail: {
     type: String
