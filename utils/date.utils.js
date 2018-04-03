@@ -1,4 +1,4 @@
 
-module.exports.parse = (value) => {
+module.exports.getRemainingTime = (value) => {
   console.log(value);
 }
