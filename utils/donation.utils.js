@@ -4,6 +4,15 @@ const ApiError = require('../models/api-error.model');
 const Campaign = require('../models/campaign.model');
 const User = require('../models/user.model');
 
+const checkIfCampaignIsAchieved = (paymentToken, campaign) => {
+  if(campaign.amountRaised >= campaign.target){
+    campaign.isAchieved = true;
+    console.log(campaign.isAchieved)
+  } else {
+    console.log(`Quedan ${campaign.target - campaign.amountRaised}USD para completar la campaña`)
+  }
+}
+
 module.exports.addAmountToCampaign = (paymentToken, amount) => {
     Donation.findOne({
         paymentToken: paymentToken,
@@ -18,9 +27,12 @@ module.exports.addAmountToCampaign = (paymentToken, amount) => {
                 "amountRaised": amount
               }
             }, {new: true})
-            .then(() => console.log("Amount added to the campaign"))
+            .then(campaign => {
+              console.log("Amount added to the campaign")
+              checkIfCampaignIsAchieved(paymentToken, campaign)
+            })
             .catch(error => {
-              res.status(500)
+              console.log(error)
             })
         } else {
           console.log(error);
@@ -68,4 +80,5 @@ module.exports.addAmountToUser = (paymentToken, amount) => {
       }
     })
 }
+
 

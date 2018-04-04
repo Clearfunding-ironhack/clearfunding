@@ -20,6 +20,8 @@ module.exports.create = (req, res, next) => {
 }
 
 module.exports.list = (req, res, next) => {
+  let now = new Date()
+  console.log(now)
   Campaign.find()
     .then((campaigns) => res.status(201).json(campaigns))
     .catch(error => next(new ApiError(error.message)))
