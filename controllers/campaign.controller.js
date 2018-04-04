@@ -4,8 +4,6 @@ const Campaign = require('../models/campaign.model');
 const mongoose = require('mongoose');
 const dateUtils = require('../utils/date.utils');
 
-
-
 module.exports.create = (req, res, next) => {
   const campaign = new Campaign(req.body)
   campaign.save()
@@ -27,11 +25,16 @@ module.exports.list = (req, res, next) => {
     .catch(error => next(new ApiError(error.message)))
 }
 
+
 module.exports.get = (req, res, next) => {
+  console.log("hola")
   const id = req.params.id;
   Campaign.findById(id)
     .then(campaign => {
+      console.log(campaign)
       if (campaign) {
+        const remainingTime = dateUtils.getRemainingTime(campaign.dueDate);
+        
         res.status(201).json(campaign)
       } else {
         next(new ApiError("Campaign not found", 404));
