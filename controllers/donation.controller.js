@@ -7,6 +7,7 @@ const paypal = require('paypal-rest-sdk');
 const paypalConfig = require('../configs/paypal.config');
 const donationUtils = require('../utils/donation.utils');
 const dateUtils = require('../utils/date.utils');
+const mailer = require('../notifiers/mail.notifier');
 
 module.exports.pay = (req, res, next) => {
 
@@ -135,12 +136,68 @@ module.exports.executePayment = (req, res) => {
         }, {upsert: true})
         .then(() => {
           const amount = Number(payment.transactions[0].amount.total);
-          donationUtils.addAmountToCampaign(paymentToken, amount);
-          donationUtils.addAmountToUser(paymentToken, amount);
+          Promise.all([
+            addAmountToCampaign(paymentToken, amount),
+            addAmountToUser(paymentToken, amount)
+          ])
+          .then(() => { 
+              console.log("llego aqui");
+              mailer.emailNotifier('cgferneco@gmail.com, bsanser@gmail.com');
+              res.json({ message: 'OK'});
+          })
+          .catch(error => next(error));
         })
-        .catch(error => console.log(error))
+        .catch(error => next(error))
     }
-    res.send('Success');
   })
 };
 
+function addAmountToCampaign(paymentToken, amount) {
+  return new Promise((resolve, reject) => {
+    Donation.findOne({ paymentToken: paymentToken, state: "approved"})
+      .then(donation => {
+        if (donation) {
+          Campaign.findOneAndUpdate(
+            { "paymentTokens": paymentToken }, 
+            { $inc: { "amountRaised": amount } }, 
+            { new: true })
+            .then(campaign => {
+              if (campaign) {
+                campaign.evaluateAchivement();
+                campaign.save()
+                  .then(() => {
+                    resolve(campaign);
+                  })
+                  .catch(error => reject(error));
+              } else {
+                reject(new Error('Campaign not found'));
+              }
+            })
+            .catch(error => console.log(error))
+        } else {
+          reject(new Error('Donation not found'));
+        }
+      })
+      .catch(error => reject(error));
+  });
+}
+
+function addAmountToUser(paymentToken, amount) {
+  return new Promise((resolve, reject) => {
+    Donation.findOne({paymentToken: paymentToken,state: "approved"})
+    .then(donation => {
+      if (donation) {
+        User.findOneAndUpdate(
+          {"paymentTokens": paymentToken},
+          {$inc: {"committedAmount": amount}}, 
+          {new: true })
+        .then(() => resolve())
+        .catch(error =>  res.status(500));
+      } else {
+        reject(new Error('Donation not found'));
+      }
+    })
+    .catch(error => reject(error));
+});
+}
+ 

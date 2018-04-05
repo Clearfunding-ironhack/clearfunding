@@ -8,14 +8,17 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
-const paypal = require('paypal-rest-sdk')
+const paypal = require('paypal-rest-sdk');
 
 
+//routes
 
 const userRoutes = require('./routes/user.routes');
 const sessionRoutes = require('./routes/session.routes');
 const campaignRoutes = require('./routes/campaign.routes');
 const donationRoutes = require('./routes/donation.routes');
+
+
 
 const app = express();
 
@@ -58,6 +61,8 @@ app.use('/users', userRoutes );
 app.use('/sessions', sessionRoutes );
 app.use('/campaigns', campaignRoutes );
 app.use('/donations', donationRoutes );
+
+
 
 paypal.configure({
     'mode': 'sandbox', //sandbox or live
