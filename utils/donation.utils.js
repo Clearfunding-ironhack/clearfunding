@@ -4,47 +4,36 @@ const ApiError = require('../models/api-error.model');
 const Campaign = require('../models/campaign.model');
 const User = require('../models/user.model');
 
-const checkIfCampaignIsAchieved = (paymentToken, campaign) => {
-  if(campaign.amountRaised >= campaign.target){
-    campaign.isAchieved = true;
-    console.log(campaign.isAchieved)
-  } else {
-    console.log(`Quedan ${campaign.target - campaign.amountRaised}USD para completar la campaña`)
-  }
-}
 
 module.exports.addAmountToCampaign = (paymentToken, amount) => {
-    Donation.findOne({
-        paymentToken: paymentToken,
-        state: "approved"
-      })
+  return new Promise((resolve, reject) => {
+    Donation.findOne({ paymentToken: paymentToken, state: "approved"})
       .then(donation => {
         if (donation) {
-          Campaign.findOneAndUpdate({
-              "paymentTokens": paymentToken
-            }, {
-              $inc: {
-                "amountRaised": amount
-              }
-            }, {new: true})
+          Campaign.findOneAndUpdate(
+            { "paymentTokens": paymentToken }, 
+            { $inc: { "amountRaised": amount } }, 
+            { new: true })
             .then(campaign => {
-              console.log("Amount added to the campaign")
-              checkIfCampaignIsAchieved(paymentToken, campaign)
+              if (campaign) {
+                campaign.evaluateAchivement();
+                campaign.save()
+                  .then(() => {
+                    resolve(campaign);
+                  })
+                  .catch(error => reject(error));
+                //checkIfCampaignIsAchieved(paymentToken, campaign)
+              } else {
+                reject(new Error('Campaign not found'));
+              }
             })
-            .catch(error => {
-              console.log(error)
-            })
+            .catch(error => console.log(error))
         } else {
-          console.log(error);
+          reject(new Error('Donation not found'));
         }
       })
-      .catch(error => {
-        if (error instanceof mongoose.Error.ValidationError) {
-          console.log(error);
-        } else {
-          (new ApiError(error.message, 500));
-        }
-      })
+      .catch(error => reject(error));
+  });
 }
 
 module.exports.addAmountToUser = (paymentToken, amount) => {
