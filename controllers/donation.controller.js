@@ -141,7 +141,9 @@ module.exports.executePayment = (req, res) => {
           const amount = Number(payment.transactions[0].amount.total);
           Promise.all([
             addAmountToCampaign(paymentToken, amount),
-            addAmountToUser(paymentToken, amount)
+            addAmountToUser(paymentToken, amount),
+            addDataToCampaign(paymentToken)
+
           ])
           .then(() => { 
               console.log("llego aqui");
@@ -206,6 +208,35 @@ function addAmountToUser(paymentToken, amount) {
           {"paymentTokens": paymentToken},
           {$inc: {"committedAmount": amount}, $addToSet:{"campaignsBacked": donation.campaignId}},
           {new: true })
+        .then((user) => resolve())
+        .catch(error =>  res.status(500));
+      } else {
+        reject(new Error('Donation not found'));
+      }
+    })
+    .catch(error => reject(error));
+});
+}
+
+function addDataToCampaign(paymentToken) {
+  return new Promise((resolve, reject) => {
+    Donation.findOne({paymentToken: paymentToken,state: "approved"})
+    .then(donation => {
+      if (donation) {
+        const paymentInfo = {
+          saleID: donation.saleID,
+          data: {
+            price: donation.price,
+            currency: donation.currency
+          }
+        }
+
+        console.log(paymentInfo)
+
+
+        Campaign.findOneAndUpdate(
+          {"paymentTokens": paymentToken},
+          {$push: {"paymentInfo": paymentInfo}})
         .then((user) => resolve())
         .catch(error =>  res.status(500));
       } else {
