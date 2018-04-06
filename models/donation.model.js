@@ -28,6 +28,9 @@ const donationSchema = new mongoose.Schema(
   paymentToken: {
     type: String
   },
+  saleID: {
+    type: String
+  },
   state: {
     type: String,
     default: "Non approved" // poner un enum con las opciones

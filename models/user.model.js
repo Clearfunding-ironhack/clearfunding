@@ -28,18 +28,18 @@ const userSchema = new mongoose.Schema(
   DNI: {
     type: String,
   },
-  campaignsFollowed: {
+  campaignsFollowed: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'Campaigns'
-  },
-  campaignsBacked: {
+  }],
+  campaignsBacked: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'Campaigns'
-  },
-  campaignsCreated: {
+  }],
+  campaignsCreated: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'Campaigns'
-  },
+  }],
   committedAmount: {
     type: 'Number'
   },
@@ -62,20 +62,7 @@ const userSchema = new mongoose.Schema(
 
 });
 
-userSchema.pre('update', function () {
-  console.log("ESTOY AQUI")
-  console.log(user);
-  console.log(user.password);
-  const user = this;
-  bcrypt.genSalt(SALT_WORK_FACTOR)
-      .then(salt => {
-          bcrypt.hash(user.password, salt)
-              .then(hash => {
-                  user.password = hash;
-              });
-      })
-      .catch(error => console.log("Pete"));
-});
+
 
 userSchema.pre('save', function (next) {
   const user = this;
@@ -106,6 +93,7 @@ userSchema.methods.encryptPasswordAgain = function (password) {
       })
       .catch(error => console.log(error));
 };
+
 
 
 const User = mongoose.model('User', userSchema);

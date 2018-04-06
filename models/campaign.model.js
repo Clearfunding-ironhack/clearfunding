@@ -41,10 +41,10 @@ const campaignSchema = new mongoose.Schema(
   dueDate: {
     type: Date
   },
-  categories: {
+  categories: [{
     type: String,
     enum: INTEREST_TYPES
-  },
+  }],
   paymentTokens: [{
     type: String,
     default: []
