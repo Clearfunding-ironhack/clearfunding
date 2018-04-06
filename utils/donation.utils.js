@@ -1,73 +1,43 @@
-const Donation = require('../models/donation.model');
-const mongoose = require('mongoose');
+const paypal = require('paypal-rest-sdk');
+const paypalConfig = require('../configs/paypal.config');
 const ApiError = require('../models/api-error.model');
-const Campaign = require('../models/campaign.model');
 const User = require('../models/user.model');
+const Campaign = require('../models/campaign.model');
+const mongoose = require('mongoose');
+const dateUtils = require('../utils/date.utils');
 
 
-module.exports.addAmountToCampaign = (paymentToken, amount) => {
-  return new Promise((resolve, reject) => {
-    Donation.findOne({ paymentToken: paymentToken, state: "approved"})
-      .then(donation => {
-        if (donation) {
-          Campaign.findOneAndUpdate(
-            { "paymentTokens": paymentToken }, 
-            { $inc: { "amountRaised": amount } }, 
-            { new: true })
-            .then(campaign => {
-              if (campaign) {
-                campaign.evaluateAchivement();
-                campaign.save()
-                  .then(() => {
-                    resolve(campaign);
-                  })
-                  .catch(error => reject(error));
-                //checkIfCampaignIsAchieved(paymentToken, campaign)
-              } else {
-                reject(new Error('Campaign not found'));
-              }
-            })
-            .catch(error => console.log(error))
-        } else {
-          reject(new Error('Donation not found'));
-        }
-      })
-      .catch(error => reject(error));
+module.exports.refund = () => {
+  var data = {
+    "amount": {
+      "currency": "USD",
+      "total": "20.00"
+    }
+  }
+  saleId="95U10637WJ3194522";
+  paypal.sale.refund(saleId, data, (error, refund) => {
+    if(error) {
+      console.log(error)
+      throw error;
+    } else {
+      console.log('Refund sale successful');
+      console.log(JSON.stringify(refund));
+    }
   });
 }
 
-module.exports.addAmountToUser = (paymentToken, amount) => {
-  Donation.findOne({
-      paymentToken: paymentToken,
-      state: "approved"
-    })
-    .then(donation => {
-      if (donation) {
-        User.findOneAndUpdate({
-            "paymentTokens": paymentToken
 
-          }, {
-            $inc: {
-              "committedAmount": amount
-            }
-          }, {
-            new: true
-          })
-          .then(() => console.log("Amount added to the user"))
-          .catch(error => {
-            res.status(500)
-          })
-      } else {
-        console.log(error);
-      }
-    })
-    .catch(error => {
-      if (error instanceof mongoose.Error.ValidationError) {
-        console.log(error);
-      } else {
-        (new ApiError(error.message, 500));
-      }
-    })
+module.exports.updateCompletedCampaign = () => {
+  Campaign.find({"isAchieved": false, "isCompleted": false})
+  .then(campaigns => campaigns.forEach((campaign) =>{
+    console.log(campaign)
+    console.log(dateUtils.getRemainingTime(campaign.dueDate))
+    if( dateUtils.getRemainingTime(campaign.dueDate) <= 0){
+      campaign.isCompleted = true;
+      campaign.save();
+    }
+  }))
+  .catch(error => console.log(error))
 }
 
-
+// 

@@ -21,7 +21,7 @@ module.exports.pay = (req, res, next) => {
   const payerMail = "";
   const payedMail = "";
 
-  // refund(campaignId);
+  // refund();
 
   Campaign.findById(campaignId)
   .then(campaign => {
@@ -222,8 +222,8 @@ function addAmountToUser(paymentToken, amount) {
 //   return new Promise((resolve, reject) =>{
 //     Campaign.findById(campaignID)
 //     .then(campaign => {
-//       campaign.paymentTokens.forEach((paymentToken) => {
-//         Donation.findOne({"paymentToken": paymentToken})
+//       // campaign.paymentTokens.forEach((paymentToken) => {
+//         Donation.find({"paymentToken": campaign.paymentTokens.indexOf(paymentTokens) !== -1})
 //         .then(donation => console.log(donation))
 //         .catch(error => console.log(`Error 1: ${error}`))
 //       })
