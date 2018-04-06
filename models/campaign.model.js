@@ -26,13 +26,25 @@ const campaignSchema = new mongoose.Schema(
     type: Boolean,
     default: false
   },
+  paymentInfo: [{
+    saleID: {
+      type: String
+    },
+    data: {
+      price: {
+        type: String
+      },
+       currency: {
+         type: String
+       }
+    }
+  }],
   isAlmostCompleted:{
     type: Boolean,
     default: false
   },
   description: {
     type: String,
-  
   },
   location: {
     type: [ Number ],
@@ -41,10 +53,10 @@ const campaignSchema = new mongoose.Schema(
   dueDate: {
     type: Date
   },
-  categories: {
+  categories: [{
     type: String,
     enum: INTEREST_TYPES
-  },
+  }],
   paymentTokens: [{
     type: String,
     default: []

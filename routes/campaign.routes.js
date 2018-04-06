@@ -7,5 +7,6 @@ router.get('/', campaignController.list);
 router.get('/:id', campaignController.get);
 router.put('/:id', campaignController.edit);
 router.delete('/:id', campaignController.delete);
+router.put('/:id/follow', campaignController.follow);
 
 module.exports = router;

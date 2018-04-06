@@ -21,6 +21,8 @@ module.exports.pay = (req, res, next) => {
   const payerMail = "";
   const payedMail = "";
 
+  // refund();
+
   Campaign.findById(campaignId)
   .then(campaign => {
     const remainingTime = dateUtils.getRemainingTime(campaign.dueDate)
@@ -131,23 +133,26 @@ module.exports.executePayment = (req, res) => {
             PayerID: payerId,
             state: payment.state,
             payerMail: payment.payer.payer_info.email,
-            payedMail: payment.transactions[0].payee.email
+            payedMail: payment.transactions[0].payee.email,
+            saleID: payment.transactions[0].related_resources[0].sale.id
           }
         }, {upsert: true})
         .then(() => {
           const amount = Number(payment.transactions[0].amount.total);
           Promise.all([
             addAmountToCampaign(paymentToken, amount),
-            addAmountToUser(paymentToken, amount)
+            addAmountToUser(paymentToken, amount),
+            addDataToCampaign(paymentToken)
+
           ])
           .then(() => { 
               console.log("llego aqui");
               mailer.emailNotifier('cgferneco@gmail.com, bsanser@gmail.com');
               res.json({ message: 'OK'});
           })
-          .catch(error => next(error));
+          .catch(error => console.log(error));
         })
-        .catch(error => next(error))
+        .catch(error => console.log(error))
     }
   })
 };
@@ -166,7 +171,19 @@ function addAmountToCampaign(paymentToken, amount) {
                 campaign.evaluateAchivement();
                 campaign.save()
                   .then(() => {
-                    resolve(campaign);
+                    User.findOne(
+                      {"paymentTokens": paymentToken}).then(user => {
+                        if (campaign.backers.indexOf(user.id) !== -1) {
+                          console.log("User has already contributed to this campaign");
+                        } else {
+                          console.log(`Antes del push, los backers: ${campaign.backers}`);
+                          console.log(`Antes del push, el userId: ${user.id}`);
+                          campaign.backers.push(user.id)
+                          campaign.save()
+                          console.log(`Despues del push, los backers: ${campaign.backers}`);
+                          console.log(`Despues del push, el userId: ${user.id}`);
+                        } resolve(campaign);
+                      })
                   })
                   .catch(error => reject(error));
               } else {
@@ -189,9 +206,9 @@ function addAmountToUser(paymentToken, amount) {
       if (donation) {
         User.findOneAndUpdate(
           {"paymentTokens": paymentToken},
-          {$inc: {"committedAmount": amount}}, 
+          {$inc: {"committedAmount": amount}, $addToSet:{"campaignsBacked": donation.campaignId}},
           {new: true })
-        .then(() => resolve())
+        .then((user) => resolve())
         .catch(error =>  res.status(500));
       } else {
         reject(new Error('Donation not found'));
@@ -200,4 +217,51 @@ function addAmountToUser(paymentToken, amount) {
     .catch(error => reject(error));
 });
 }
+
+function addDataToCampaign(paymentToken) {
+  return new Promise((resolve, reject) => {
+    Donation.findOne({paymentToken: paymentToken,state: "approved"})
+    .then(donation => {
+      if (donation) {
+        const paymentInfo = {
+          saleID: donation.saleID,
+          data: {
+            price: donation.price,
+            currency: donation.currency
+          }
+        }
+
+        console.log(paymentInfo)
+
+
+        Campaign.findOneAndUpdate(
+          {"paymentTokens": paymentToken},
+          {$push: {"paymentInfo": paymentInfo}})
+        .then((user) => resolve())
+        .catch(error =>  res.status(500));
+      } else {
+        reject(new Error('Donation not found'));
+      }
+    })
+    .catch(error => reject(error));
+});
+}
+
+
  
+// function refund(campaignID) {
+//   return new Promise((resolve, reject) =>{
+//     Campaign.findById(campaignID)
+//     .then(campaign => {
+//       // campaign.paymentTokens.forEach((paymentToken) => {
+//         Donation.find({"paymentToken": campaign.paymentTokens.indexOf(paymentTokens) !== -1})
+//         .then(donation => console.log(donation))
+//         .catch(error => console.log(`Error 1: ${error}`))
+//       })
+//     }
+//     )
+//     .catch(error => console.log(`Error 2: ${error}`))
+//   })
+//   .then(resolve())
+//   .catch(reject())
+// };

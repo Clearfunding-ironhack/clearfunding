@@ -5,7 +5,20 @@ const mongoose = require('mongoose');
 const dateUtils = require('../utils/date.utils');
 
 module.exports.create = (req, res, next) => {
-  const campaign = new Campaign(req.body)
+  const latitude = req.body.latitude;
+  const longitude = req.body.longitude;
+  const campaign = new Campaign({
+      title: req.body.title,
+      location: req.body.location,
+      image: req.body.image,
+      description: req.body.description,
+      target: req.body.target,
+      dueDate: req.body.dueDate,
+      location: [latitude, longitude],
+      categories: req.body.categories,
+      creator: req.user.id
+    })
+  
   campaign.save()
     .then(() => {
       res.status(201).json(campaign)
@@ -14,10 +27,12 @@ module.exports.create = (req, res, next) => {
       if (error instanceof mongoose.Error.ValidationError) {
         next(new ApiError(error.message));
       } else {
-        (new ApiError(error.message, 500))
+        console.log('entro aqui');
+        next(new ApiError(error.message, 500))
       }
     });
-}
+  }
+
 
 module.exports.list = (req, res, next) => {
   let now = new Date()
@@ -76,4 +91,24 @@ module.exports.delete = (req, res, next) => {
         next(new ApiError("Campaign not found", 404));
       }
     }).catch(error => new ApiError(error.message, 500));
+}
+
+module.exports.follow = (req, res, next) => {
+  const id = req.params.id;
+  console.log(req.user.id);
+  Campaign.update({ _id: id }, {$addToSet: { followers: req.user.id }})
+  .then(() => {
+   User.update({_id: req.user.id}, {$addToSet: { campaignsFollowed: id }})
+   .then(() => {
+     res.status(204).json("User added to followers and campaign added to campaignsFollowed successfully")
+   })
+   .catch(error => console.log(error));
+ })
+  .catch(error => {
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(new ApiError(error.message));
+    } else {
+      (new ApiError(error.message, 500));
+    }
+  });
 }

@@ -9,7 +9,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 const paypal = require('paypal-rest-sdk');
-
+const schedule = require('node-schedule');
 
 //routes
 
@@ -28,6 +28,7 @@ require('./configs/db.config');
 require('./configs/paypal.config');
 require('./configs/environment.config');
 require('./configs/passport.config').setup(passport);
+const donationUtils = require("./utils/donation.utils")
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -63,13 +64,15 @@ app.use('/campaigns', campaignRoutes );
 app.use('/donations', donationRoutes );
 
 
-
+//Paypal Config
 paypal.configure({
     'mode': 'sandbox', //sandbox or live
     'client_id': process.env.PAYPAL_CLIENT_ID,
     'client_secret': process.env.PAYPAL_CLIENT_SECRET
-  
 });
+
+//Cron
+var refundJob = schedule.scheduleJob('42 * * * *', donationUtils.updateCompletedCampaign);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
