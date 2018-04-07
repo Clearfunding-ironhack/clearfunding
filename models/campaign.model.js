@@ -22,6 +22,10 @@ const campaignSchema = new mongoose.Schema(
     type: Boolean,
     default: false
   },
+  isAlmostAchieved:{
+    type: Boolean,
+    default: false
+  },
   isCompleted: {
     type: Boolean,
     default: false
@@ -39,10 +43,6 @@ const campaignSchema = new mongoose.Schema(
        }
     }
   }],
-  isAlmostCompleted:{
-    type: Boolean,
-    default: false
-  },
   description: {
     type: String,
   },
@@ -85,12 +85,12 @@ const campaignSchema = new mongoose.Schema(
   }
 });
 
-campaignSchema.methods.evaluateAchivement = function() {
+campaignSchema.methods.evaluateAchievement = function() {
   if (this.amountRaised >= this.target) {
     this.isAchieved = true;
-    console.log(this.isAchieved);
-  } else if(this.amountRaised >= this.target * 0.8) {
+  } else if (this.amountRaised >= this.target * 0.8 && !this.isAlmostAchieved) {
     this.isAlmostAchieved = true;
+    this.sendAlmostAchievedEmail();
     console.log(`Campaign is almost achieved: only ${this.target - this.amountRaised}USD til goal`);
   } else {
     console.log(`Esto es target: ${this.target}`);
