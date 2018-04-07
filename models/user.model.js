@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema(
   },
   password: {
     type: String,
+    required: true,
+    min: [6, 'Too few characters. Stop changing the fucking password'],
+    max: 12
   },
   image: {
     type: String,
