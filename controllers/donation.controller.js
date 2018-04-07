@@ -155,14 +155,7 @@ module.exports.executePayment = (req, res) => {
 
           ])
           .then(data => { 
-            console.log(`Data 0: ${data[0]}`);
-            console.log(`Data 1: ${data[1]}`);
-            console.log(`Data 2: ${data[2]}`);
-            console.log(`Data 3: ${data[3]}`);
             const campaign = data[3];
-            console.log(campaign)
-            console.log(campaign.creator);
-            console.log(campaign.creator.username);
             const user = data[1];
               let to =  donation.userId.email;
               let subject = `${campaign.creator.username} wanted to personally thank you for your contribution to ${campaign.title}`

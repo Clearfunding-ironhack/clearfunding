@@ -72,7 +72,7 @@ paypal.configure({
 });
 
 //Cron
-var refundJob = schedule.scheduleJob('42 * * * *', donationUtils.updateCompletedCampaign);
+var refundJob = schedule.scheduleJob('37 * * * *', donationUtils.updateCompletedCampaign);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
