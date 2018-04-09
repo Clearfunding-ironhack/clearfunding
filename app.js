@@ -19,6 +19,7 @@ const userRoutes = require('./routes/user.routes');
 const sessionRoutes = require('./routes/session.routes');
 const campaignRoutes = require('./routes/campaign.routes');
 const donationRoutes = require('./routes/donation.routes');
+const storyRoutes = require('./routes/story.routes');
 
 
 
@@ -64,6 +65,7 @@ app.use('/users', userRoutes );
 app.use('/sessions', sessionRoutes );
 app.use('/campaigns', campaignRoutes );
 app.use('/donations', donationRoutes );
+app.use('/stories', storyRoutes );
 
 
 //Paypal Config
