@@ -12,7 +12,6 @@ const campaignSchema = new mongoose.Schema(
   },
   target: {
     type: Number,
-  
   },
   amountRaised: {
     type: Number,
@@ -48,7 +47,8 @@ const campaignSchema = new mongoose.Schema(
   },
   location: {
     type: [ Number ],
-    index: '2dsphere'
+    index: '2dsphere',
+    default: []
   },
   dueDate: {
     type: Date
