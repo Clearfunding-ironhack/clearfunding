@@ -3,8 +3,7 @@ const ApiError = require('../models/api-error.model');
 const async = require('async');
 const crypto = require('crypto');
 const mailer = require('../notifiers/mail.notifier');
-
-
+const User = require('../models/user.model');
 
 
 module.exports.create = (req, res, next) => {
@@ -40,12 +39,14 @@ module.exports.destroy = (req, res, next) => {
 
 module.exports.forgot = (req, res, next) => {
   const email = req.body.email;
+  console.log(email);
   const to = email;
   const subject = 'Clearfunding Password Reset';
-  let html = `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p> Please click on the following link, or paste this into your browser to complete the process:
-  'http://${req.headers.host}/reset/${token}'</p><p> If you did not request this, please ignore this email and your password will remain unchanged.</p>`;
+  let html = 'hola';
+  // let html = `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p> Please click on the following link, or paste this into your browser to complete the process:
+  // 'http://${req.headers.host}/reset/${token}'</p><p> If you did not request this, please ignore this email and your password will remain unchanged.</p>`;
 
-   const generateToken = new Promise((resolve, reject) => {
+  const generateToken = new Promise((resolve, reject) => {
     crypto.randomBytes(20, function(err, buf) {
       if(err) {
         reject(err)
@@ -56,10 +57,9 @@ module.exports.forgot = (req, res, next) => {
         resolve(token)
       }
     });
-  })
+  });
 
-  generateToken.then(
-      User.findOne({ email: email })
+  generateToken.then(User.findOne({"email": email })
       .then(user => {
         if (!user) {
           console.log('No user was found with that email');
@@ -71,15 +71,18 @@ module.exports.forgot = (req, res, next) => {
         }
         user.resetPasswordToken = token;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        console.log(`Este es el usuario${user}`);
+        console.log(`Este es el passwordToken${user.resetPasswordToken}`);
+        console.log(`Este es el passwordTokenExpires${user.resetPasswordExpires}`);
 
         user.save(function(err) {
           next(err, token, user);
         });
         mailer.emailNotifier(to, subject, html);
       }) 
-        
-  );
-}
+      .catch(error => next(error))
+    )
+  }
  
   
 module.exports.reset = (req, res, next) => {
