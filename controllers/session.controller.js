@@ -1,8 +1,10 @@
 const passport = require('passport');
 const ApiError = require('../models/api-error.model');
-
-
-
+const async = require('async');
+const crypto = require('crypto');
+const mailer = require('../notifiers/mail.notifier');
+const User = require('../models/user.model');
+const PROVIDER = "localhost:3000";
 
 
 module.exports.create = (req, res, next) => {
@@ -35,3 +37,78 @@ module.exports.destroy = (req, res, next) => {
   req.user = null;
   res.status(204).json();
 };
+
+module.exports.forgot = (req, res, next) => {
+  const email = req.body.email;
+  let token;
+  const to = email;
+  const subject = 'Clearfunding Password Reset';
+
+
+
+  const generateToken = new Promise((resolve, reject) => {
+    crypto.randomBytes(20, function(err, buf) {
+      if(err) {
+        reject(err)
+      }
+      else {
+        token = buf.toString('hex');
+        console.log(`This is the token: ${token}`);
+        resolve(token)
+      }
+    });
+  });
+
+  generateToken.then(User.findOne({"email": email })
+      .then(user => {
+        if (!user) {
+          console.log('No user was found with that email');
+          html = `We are sorry but there is no user in our database with email ${email}`;
+          mailer.emailNotifier(to, subject, html);
+          // redirigir a login
+          //enviar email diciendo que no se ha encontrado el usuario  
+        }
+       
+        user.resetPasswordToken = token;
+      
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        user.save();
+        let html = `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p> Please click on the following link, or paste this into your browser to complete the process:
+        'http://${PROVIDER}/reset/${token}'</p><p> If you did not request this, please ignore this email and your password will remain unchanged.</p>`;
+        mailer.emailNotifier(to, subject, html);
+        res.status(201).json('Email sent');
+      }) 
+      .catch(error => next(error))
+    )
+  }
+ 
+  
+module.exports.reset = (req, res, next) => {
+  console.log("holi");
+  // const to = user.email;
+  // const subject = 'Your Clearfunding Password has been changed';
+  // let html = `<p>'Hi, ${user.username}, </p> <p>This is a confirmation that the password for your clearFunding account ${user.email} has just been changed.</p>`;
+
+    User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } })
+        .then( user => {
+          if(!user) {
+            console.log('Password reset token is invalid or has expired.');
+              //redirigir a algun lado;
+          }
+          else {
+            user.password = req.body.password;
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+            user.save();
+            // mailer.emailNotifier(to, subject, html, user);
+          }
+        })
+        .catch ( error => next(error))
+        
+  }
+  
+
+
+
+
+  

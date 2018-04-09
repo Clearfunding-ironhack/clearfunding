@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema(
     min: [6, 'Too few characters. Stop changing the fucking password'],
     max: 12
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   image: {
     type: String,
     default: 'https://www.linkteachers.com/frontend/foundation/images/dummy_user/default_image.jpg'
