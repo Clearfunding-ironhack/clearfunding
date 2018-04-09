@@ -4,6 +4,7 @@ const async = require('async');
 const crypto = require('crypto');
 const mailer = require('../notifiers/mail.notifier');
 const User = require('../models/user.model');
+const PROVIDER = "localhost:3000";
 
 
 module.exports.create = (req, res, next) => {
@@ -39,12 +40,11 @@ module.exports.destroy = (req, res, next) => {
 
 module.exports.forgot = (req, res, next) => {
   const email = req.body.email;
-  console.log(email);
+  let token;
   const to = email;
   const subject = 'Clearfunding Password Reset';
-  let html = 'hola';
-  // let html = `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p> Please click on the following link, or paste this into your browser to complete the process:
-  // 'http://${req.headers.host}/reset/${token}'</p><p> If you did not request this, please ignore this email and your password will remain unchanged.</p>`;
+
+
 
   const generateToken = new Promise((resolve, reject) => {
     crypto.randomBytes(20, function(err, buf) {
@@ -52,7 +52,7 @@ module.exports.forgot = (req, res, next) => {
         reject(err)
       }
       else {
-        var token = buf.toString('hex');
+        token = buf.toString('hex');
         console.log(`This is the token: ${token}`);
         resolve(token)
       }
@@ -65,19 +65,16 @@ module.exports.forgot = (req, res, next) => {
           console.log('No user was found with that email');
           html = `We are sorry but there is no user in our database with email ${email}`;
           mailer.emailNotifier(to, subject, html);
-          reject(new Error('Donation not found'));
           // redirigir a login
-          //enviar email diciendo que no se ha encontrado el usuario
+          //enviar email diciendo que no se ha encontrado el usuario  
         }
+       
         user.resetPasswordToken = token;
+      
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-        console.log(`Este es el usuario${user}`);
-        console.log(`Este es el passwordToken${user.resetPasswordToken}`);
-        console.log(`Este es el passwordTokenExpires${user.resetPasswordExpires}`);
-
-        user.save(function(err) {
-          next(err, token, user);
-        });
+        user.save();
+        let html = `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p> Please click on the following link, or paste this into your browser to complete the process:
+        'http://${PROVIDER}/reset/${token}'</p><p> If you did not request this, please ignore this email and your password will remain unchanged.</p>`;
         mailer.emailNotifier(to, subject, html);
       }) 
       .catch(error => next(error))
@@ -87,6 +84,7 @@ module.exports.forgot = (req, res, next) => {
   
 module.exports.reset = (req, res, next) => {
   const email = req.body.email;
+  console.log(email);
   const to = email;
   const subject = 'Your Clearfunding Password has been changed';
   let html = `<p>'Hi, ${user.username}, </p>
