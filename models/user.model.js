@@ -53,6 +53,10 @@ const userSchema = new mongoose.Schema(
   },
   paymentTokens: [{
     type: 'String'
+  }],
+  likedPublications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Stories'
   }]
 }, {
   timestamps: true,

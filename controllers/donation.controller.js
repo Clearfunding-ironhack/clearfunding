@@ -275,19 +275,3 @@ function sendConfirmationEmail(campaign, user){
     deadline is met!</p> <p> BTW! Did we mention we wanted to thank you? :) </p>'`;
     mailer.emailNotifier(to, subject, html);
 }
-// function refund(campaignID) {
-//   return new Promise((resolve, reject) =>{
-//     Campaign.findById(campaignID)
-//     .then(campaign => {
-//       // campaign.paymentTokens.forEach((paymentToken) => {
-//         Donation.find({"paymentToken": campaign.paymentTokens.indexOf(paymentTokens) !== -1})
-//         .then(donation => console.log(donation))
-//         .catch(error => console.log(`Error 1: ${error}`))
-//       })
-//     }
-//     )
-//     .catch(error => console.log(`Error 2: ${error}`))
-//   })
-//   .then(resolve())
-//   .catch(reject())
-// };
