@@ -2,11 +2,19 @@ require('dotenv').config();
 const mailer = require('../configs/nodemailer.config');
 
 
-module.exports.emailNotifier = (to, next) => {
-  const subject = 'This is my first mail using nodemailer';
-  const html = 'Campaign almost achieved';
+
+module.exports.emailNotifier = (to, subject, html, next) => {
+  
+  // const subject = 'This is my first mail using nodemailer';
+  // const html = 'Campaign almost achieved';
 
   send(mailer.FROM, to, subject, html);
+}
+
+module.exports.multipleEmailNotifier = (mails, subject, html) => {
+  mails.forEach(to => {
+    send(mailer.FROM, to, subject, html);
+  });
 }
 
 
@@ -34,3 +42,13 @@ function send(from, to, subject, html, next){
 //     }
 //  })
 }
+
+              // // 
+              // campaign.backers.forEach( backer )
+              // let to =  donation.userId.email;
+              // let subject = `${donation.userId.username} wanted to thank you for your contribution to ${campaign.title}`
+              // let html = '<h1> Hello Barb </h1> <p> This is a paragraph </p>';
+
+              // // else if campaign.isAlmostAchieved ==true
+
+              

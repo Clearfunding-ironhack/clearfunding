@@ -9,19 +9,24 @@ const donationUtils = require('../utils/donation.utils');
 const dateUtils = require('../utils/date.utils');
 const mailer = require('../notifiers/mail.notifier');
 
+module.exports.list = (req, res, next) => {
+ Donation.find()
+    .then((donations) => res.status(201).json(donations))
+    .catch(error => next(new ApiError(error.message)))
+}
+
 module.exports.pay = (req, res, next) => {
 
   const campaignId = req.params.id;
   const name = req.body.name;
   const price = req.body.price;
   const currency = req.body.currency;
+  const userId = req.user.id;
   const paymentToken = "";
   const paymentId = "";
   const PayerID = "";
   const payerMail = "";
   const payedMail = "";
-
-  // refund();
 
   Campaign.findById(campaignId)
   .then(campaign => {
@@ -47,6 +52,7 @@ module.exports.pay = (req, res, next) => {
         price,
         currency,
         campaignId,
+        userId,
         paymentId,
         PayerID,
         payedMail,
@@ -125,9 +131,7 @@ module.exports.executePayment = (req, res) => {
     } else {
       console.log(JSON.stringify(payment));
 
-      Donation.findOneAndUpdate({
-          paymentToken: paymentToken
-        }, {
+      Donation.findOneAndUpdate({paymentToken: paymentToken }, {
           $set: {
             paymentId: paymentId,
             PayerID: payerId,
@@ -137,18 +141,22 @@ module.exports.executePayment = (req, res) => {
             saleID: payment.transactions[0].related_resources[0].sale.id
           }
         }, {upsert: true})
-        .then(() => {
+        .populate('userId')
+        .then((donation) => {
+          const userID = donation.userId;
           const amount = Number(payment.transactions[0].amount.total);
+          
           Promise.all([
             addAmountToCampaign(paymentToken, amount),
             addAmountToUser(paymentToken, amount),
             addDataToCampaign(paymentToken)
-
           ])
-          .then(() => { 
-              console.log("llego aqui");
-              mailer.emailNotifier('cgferneco@gmail.com, bsanser@gmail.com');
-              res.json({ message: 'OK'});
+          .then(data => { 
+            const campaign = data[0];
+            const user = data[1];
+           sendConfirmationEmail(campaign, user);
+            res.json({ message: 'OK'});
+
           })
           .catch(error => console.log(error));
         })
@@ -166,22 +174,21 @@ function addAmountToCampaign(paymentToken, amount) {
             { "paymentTokens": paymentToken }, 
             { $inc: { "amountRaised": amount } }, 
             { new: true })
+            .populate('backers').populate('creator').populate('followers')
             .then(campaign => {
               if (campaign) {
-                campaign.evaluateAchivement();
+                evaluateAchievement(campaign);
                 campaign.save()
                   .then(() => {
-                    User.findOne(
-                      {"paymentTokens": paymentToken}).then(user => {
-                        if (campaign.backers.indexOf(user.id) !== -1) {
-                          console.log("User has already contributed to this campaign");
+                    User.findOne({"paymentTokens": paymentToken})
+                    .then(user => {
+                      console.log(campaign.backers.indexOf(user.id))
+                      console.log(campaign.backers)
+                        if (campaign.backers.some(backer => backer.id === user.id)) {
+                          console.log("User has already contributed to this campaign");    
                         } else {
-                          console.log(`Antes del push, los backers: ${campaign.backers}`);
-                          console.log(`Antes del push, el userId: ${user.id}`);
                           campaign.backers.push(user.id)
                           campaign.save()
-                          console.log(`Despues del push, los backers: ${campaign.backers}`);
-                          console.log(`Despues del push, el userId: ${user.id}`);
                         } resolve(campaign);
                       })
                   })
@@ -208,7 +215,7 @@ function addAmountToUser(paymentToken, amount) {
           {"paymentTokens": paymentToken},
           {$inc: {"committedAmount": amount}, $addToSet:{"campaignsBacked": donation.campaignId}},
           {new: true })
-        .then((user) => resolve())
+        .then(user => resolve(user))
         .catch(error =>  res.status(500));
       } else {
         reject(new Error('Donation not found'));
@@ -230,14 +237,9 @@ function addDataToCampaign(paymentToken) {
             currency: donation.currency
           }
         }
-
-        console.log(paymentInfo)
-
-
-        Campaign.findOneAndUpdate(
-          {"paymentTokens": paymentToken},
-          {$push: {"paymentInfo": paymentInfo}})
-        .then((user) => resolve())
+    
+        Campaign.findOneAndUpdate({"paymentTokens": paymentToken},{$push: {"paymentInfo": paymentInfo}})
+        .then(user => resolve(user) )
         .catch(error =>  res.status(500));
       } else {
         reject(new Error('Donation not found'));
@@ -248,7 +250,31 @@ function addDataToCampaign(paymentToken) {
 }
 
 
+function evaluateAchievement(campaign) {
+  const to = campaign.backers.map(backer => backer.email);
+
+  if (campaign.amountRaised >= campaign.target && !campaign.isAchieved) {
+    campaign.isAchieved = true;
+    const subject = `${campaign.title} campaign was achieved. Congrats!`;
+    const html = `${campaign.title} has been completed!`;
+    mailer.multipleEmailNotifier(to, subject, html);
+  } else if (campaign.amountRaised >= campaign.target * 0.8 && !campaign.isAlmostAchieved) {
+    campaign.isAlmostAchieved = true;
+    const subject = `${campaign.title} campaign is 80% achieved`;
+    const html = `${campaign.title} is about to be completed! Help us now!`;
+    mailer.multipleEmailNotifier(to, subject, html);
+  
+  }
+}
  
+function sendConfirmationEmail(campaign, user){
+  let to = user.email;
+  let subject = `${campaign.creator.username} wanted to personally thank you for your contribution to ${campaign.title}`
+  let html = `<h1> Hello ${user.username} </h1> <p> Your contribution to ${campaign.title} is much appreciated.
+    So far we have managed to achieve ${campaign.amountRaised} USD. Thank you very much! We will notify you as soon as the 
+    deadline is met!</p> <p> BTW! Did we mention we wanted to thank you? :) </p>'`;
+    mailer.emailNotifier(to, subject, html);
+}
 // function refund(campaignID) {
 //   return new Promise((resolve, reject) =>{
 //     Campaign.findById(campaignID)
