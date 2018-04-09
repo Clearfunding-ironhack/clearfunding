@@ -62,3 +62,4 @@ campaignAlmostFinished = (campaign) => {
     // notify creator, backers and followers that the goal is 80% met
   }
 }
+
