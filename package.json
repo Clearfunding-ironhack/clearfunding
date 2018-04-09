@@ -7,10 +7,12 @@
     "dev": "DEBUG=restaurants-gmaps:* nodemon ./bin/www"
   },
   "dependencies": {
+    "async": "^2.6.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "~1.18.2",
     "connect-mongo": "^2.0.1",
     "cookie-parser": "~1.4.3",
+    "crypto": "^1.0.1",
     "debug": "~2.6.9",
     "dotenv": "^5.0.1",
     "ejs": "~2.5.7",
