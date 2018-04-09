@@ -7,10 +7,15 @@ const dateUtils = require('../utils/date.utils');
 module.exports.create = (req, res, next) => {
   const latitude = req.body.latitude;
   const longitude = req.body.longitude;
+
+  if (req.file) {
+    image = req.file.secure_url;
+    console.log(image)
+  }
+
   const campaign = new Campaign({
       title: req.body.title,
-      location: req.body.location,
-      image: req.body.image,
+      image: image,
       description: req.body.description,
       target: req.body.target,
       dueDate: req.body.dueDate,

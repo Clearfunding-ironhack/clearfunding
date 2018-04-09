@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const  path = require('path');
 const favicon = require('serve-favicon');
@@ -23,7 +25,7 @@ const donationRoutes = require('./routes/donation.routes');
 const app = express();
 
 // config
-require('dotenv').config();
+
 require('./configs/db.config');
 require('./configs/paypal.config');
 require('./configs/environment.config');

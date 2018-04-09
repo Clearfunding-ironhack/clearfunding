@@ -5,14 +5,16 @@ const ApiError = require('../models/api-error.model');
 
 
 module.exports.create =  (req, res, next) => {
-  
     User.findOne({ email: req.body.email })
     .then(user => {
         if (user != null) {
             res.json('User already exists');
         } else {
             const {username, email, password, interests} = req.body;
-            const newUser = new User({username, email, password, interests});
+            if (req.file) {
+              image = req.file.secure_url;
+            }
+            const newUser = new User({username, email, password, interests, image});
             newUser.save()
                 .then((userCreated) => {
                     res.status(201).json(userCreated);
