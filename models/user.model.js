@@ -33,6 +33,9 @@ const userSchema = new mongoose.Schema(
   DNI: {
     type: String,
   },
+  LatchId: {
+    type: String,
+  },
   campaignsFollowed: [{
     type: mongoose.Schema.Types.ObjectId,
     ref:'Campaigns'

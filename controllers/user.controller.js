@@ -1,7 +1,9 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/user.model');
 const passport = require('passport');
 const ApiError = require('../models/api-error.model');
+const latch = require('latch-sdk');
 
 
 module.exports.create =  (req, res, next) => {
@@ -98,3 +100,22 @@ module.exports.list = (req, res, next) => {
         }
       }).catch(error => new ApiError(error.message, 500));
   }
+
+  module.exports.pairLatch = (req, res, next) => {
+      latch.init({ appId: process.env.LATCH_APP_ID, secretKey: process.env.LATCH_SECRET_KEY});
+      var pairResponse = latch.pair(req.query.code, function(err, data) {
+        console.log(data)
+        if (data["data"]["accountId"]) {
+          User.findByIdAndUpdate(req.user.id, {$set: {LatchId: data["data"]["accountId"]}})
+            .then((usersaved) => {
+              res.status(204).json()
+            }).catch(error => {
+              next(new ApiError("User not found", 404))}
+            )
+        } else if (data["error"]) {
+            var message = "There has been an error with Latch, try again";
+            res.render("setup", { user: req.user, message: message, accountId: "" });
+        }
+});
+  }
+
