@@ -12,6 +12,7 @@ const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 const paypal = require('paypal-rest-sdk');
 const schedule = require('node-schedule');
+const latch = require('latch-sdk');
 
 //routes
 
@@ -22,6 +23,8 @@ const donationRoutes = require('./routes/donation.routes');
 const storyRoutes = require('./routes/story.routes');
 
 
+//Latch env variables
+
 
 const app = express();
 
@@ -30,6 +33,7 @@ const app = express();
 require('./configs/db.config');
 require('./configs/paypal.config');
 require('./configs/environment.config');
+require('./configs/latch.config');
 require('./configs/passport.config').setup(passport);
 const donationUtils = require("./utils/donation.utils")
 
