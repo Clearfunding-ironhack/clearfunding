@@ -1,5 +1,6 @@
 const User = require('../models/user.model');
 const LocalStrategy = require('passport-local').Strategy;
+const latch = require('latch-sdk');
 
 
 //Passport config

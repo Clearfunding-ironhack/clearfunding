@@ -1,3 +1,4 @@
+require('dotenv').config();
 const passport = require('passport');
 const ApiError = require('../models/api-error.model');
 const async = require('async');
@@ -5,10 +6,11 @@ const crypto = require('crypto');
 const mailer = require('../notifiers/mail.notifier');
 const User = require('../models/user.model');
 const PROVIDER = "localhost:3000";
-
+const latch = require('latch-sdk');
 
 module.exports.create = (req, res, next) => {
   const {email, password} = req.body;
+
   if(!email || !password) {
     next(new ApiError("Email and password are required"))
   }
@@ -19,13 +21,25 @@ module.exports.create = (req, res, next) => {
       } else if(!user){
         next(new ApiError(message, 401))
       } else {
-        req.login(user, (error) => {
-          if(error){
-            next(new ApiError(error.message, 500))
-          } else {
-            res.status(201).json(req.user)
-          }
-        });
+        console.log(user)
+        if (user.LatchId){
+          // console.log(`Esto me devuelve lactch ${checkIfLatchIsOn(user)}`)
+          latch.status(user.LatchId, function(err, data) {
+            if(data["data"]["operations"][process.env.LATCH_APP_ID]["status"] == "on"){
+              console.log('validation passed');
+              req.login(user, (error) => {
+                if(error){
+                  next(new ApiError(error.message, 500))
+                } else {
+                  res.status(201).json(req.user)
+                }
+              })
+            } else {
+              console.log('validation failed');
+              next(new ApiError("Password is not correct or user may have activated a second-factor authentication"));
+            }
+          })
+        };
       }
     })(req, res, next)
   }
@@ -105,8 +119,5 @@ module.exports.reset = (req, res, next) => {
         .catch ( error => next(error))
   }
   
-
-
-
 
   
