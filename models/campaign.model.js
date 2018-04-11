@@ -17,6 +17,9 @@ const campaignSchema = new mongoose.Schema(
     type: Number,
     default: 0
   },
+  percentageAchieved: {
+    type: Number
+  },
   isAchieved: {
     type: Boolean,
     default: false
@@ -42,6 +45,9 @@ const campaignSchema = new mongoose.Schema(
        }
     }
   }],
+  abstract: {
+    type: String
+  },
   description: {
     type: String,
   },

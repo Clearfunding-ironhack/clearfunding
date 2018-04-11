@@ -178,6 +178,8 @@ function addAmountToCampaign(paymentToken, amount) {
             .then(campaign => {
               if (campaign) {
                 evaluateAchievement(campaign);
+                campaign.percentageAchieved = (campaign.amountRaised / campaign.target) * 100;
+                console.log(campaign);
                 campaign.save()
                   .then(() => {
                     User.findOne({"paymentTokens": paymentToken})
