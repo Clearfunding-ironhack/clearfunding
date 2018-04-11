@@ -23,7 +23,6 @@ module.exports.create = (req, res, next) => {
       } else {
         console.log(user)
         if (user.LatchId){
-          // console.log(`Esto me devuelve lactch ${checkIfLatchIsOn(user)}`)
           latch.status(user.LatchId, function(err, data) {
             if(data["data"]["operations"][process.env.LATCH_APP_ID]["status"] == "on"){
               console.log('validation passed');
@@ -39,7 +38,15 @@ module.exports.create = (req, res, next) => {
               next(new ApiError("Password is not correct or user may have activated a second-factor authentication"));
             }
           })
-        };
+        } else {
+          req.login(user, (error) => {
+            if(error){
+              next(new ApiError(error.message, 500))
+            } else {
+              res.status(201).json(req.user)
+            }
+          })
+        }
       }
     })(req, res, next)
   }
