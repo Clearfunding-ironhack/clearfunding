@@ -7,12 +7,14 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
 const paypal = require('paypal-rest-sdk');
 const schedule = require('node-schedule');
 const latch = require('latch-sdk');
+const corsConfig = require('./configs/cors.config');
 
 //routes
 
@@ -27,6 +29,8 @@ const storyRoutes = require('./routes/story.routes');
 
 
 const app = express();
+
+app.use(cors(corsConfig))
 
 // config
 
