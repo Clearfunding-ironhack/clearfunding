@@ -85,19 +85,6 @@ const campaignSchema = new mongoose.Schema(
   }
 });
 
-// campaignSchema.methods.evaluateAchievement = function() {
-//   if (this.amountRaised >= this.target && !this.isAchieved) {
-//     this.isAchieved = true;
-//     // this.sendEmail()
-//   } else if (this.amountRaised >= this.target * 0.8 && !this.isAlmostAchieved) {
-//     this.isAlmostAchieved = true;
-//     console.log(`Campaign is almost achieved: only ${this.target - this.amountRaised}USD til goal`);
-//   } else {
-//     console.log(`Esto es target: ${this.target}`);
-//     console.log(`Esto es amountRaised: ${this.amountRaised}`);
-//     console.log(`Quedan ${this.target - this.amountRaised}USD para completar la campaña`)
-//   }
-// }
 
 const Campaign = mongoose.model("Campaign", campaignSchema);
 module.exports = Campaign;
