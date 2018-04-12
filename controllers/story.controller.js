@@ -4,30 +4,28 @@ const Story = require('../models/story.model');
 const mongoose = require('mongoose');
 
 module.exports.create = (req, res, next) => {
-  
+  const story = new Story(req.body);
   if (req.file) {
-    image = req.file.secure_url;
-    console.log(image)
+    story.image = req.file.secure_url;
   }
-  const story = new Story({
-      header: req.body.header,
-      image: image,
-      subheader: req.body.subheader,
-      abstract: req.body.abstract,
-      text: req.body.text,
-      categories: req.body.categories,
-    })
-  
+  if (req.body.text) {
+    story.estimatedReadingTime = Math.round((req.body.text.split(' ').length)/275);
+  }
+  // if (req.body.text) {
+  //   const estimatedReadingTime = (req.body.text.split(' ').length)/275;
+  //   console.log(estimatedReadingTime)
+  // }
   story.save()
     .then((story) => {
-
+      console.log(story)
       res.status(201).json(story)
     })
     .catch(error => {
       if (error instanceof mongoose.Error.ValidationError) {
+        console.log("errrrro")
         next(new ApiError(error.message));
       } else {
-        console.log('entro aqui');
+        console.log('entro aquiasfasd');
         next(new ApiError(error.message, 500))
       }
     });

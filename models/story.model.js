@@ -11,11 +11,18 @@ const storySchema = new mongoose.Schema(
   },
   abstract: {
     type: String,
- 
   },
   text: {
     type: String,
-
+  },
+  author:{
+    type: String,
+  },
+  imageFooter:{
+    type: String,
+  },
+  estimatedReadingTime:{
+    type: Number
   },
   categories: [{
     type: String,
@@ -27,7 +34,8 @@ const storySchema = new mongoose.Schema(
   },
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref:'User'
+    ref:'User',
+    default: []
   }],
 }, {
   timestamps: true,

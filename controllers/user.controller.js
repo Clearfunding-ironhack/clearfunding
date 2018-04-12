@@ -102,7 +102,6 @@ module.exports.list = (req, res, next) => {
   }
 
   module.exports.pairLatch = (req, res, next) => {
-      latch.init({ appId: process.env.LATCH_APP_ID, secretKey: process.env.LATCH_SECRET_KEY});
       var pairResponse = latch.pair(req.query.code, function(err, data) {
         console.log(data)
         if (data["data"]["accountId"]) {
