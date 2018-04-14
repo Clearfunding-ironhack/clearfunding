@@ -16,7 +16,7 @@ module.exports.create =  (req, res, next) => {
             if (req.file) {
               image = req.file.secure_url;
             }
-            const newUser = new User({username, email, password, interests, image});
+            const newUser = new User({username, email, password, interests});
             newUser.save()
                 .then((userCreated) => {
                     res.status(201).json(userCreated);
@@ -29,7 +29,7 @@ module.exports.create =  (req, res, next) => {
                     }
                 });
         }
-    }).catch(error => next(new ApiError(error.message, 500)));
+    })//.catch(error => next(new ApiError(error.message, 500)));
   }
 
 
