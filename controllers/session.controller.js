@@ -5,7 +5,7 @@ const async = require('async');
 const crypto = require('crypto');
 const mailer = require('../notifiers/mail.notifier');
 const User = require('../models/user.model');
-const PROVIDER = "localhost:3000";
+const PROVIDER = "localhost:4200";
 const latch = require('latch-sdk');
 
 module.exports.create = (req, res, next) => {
