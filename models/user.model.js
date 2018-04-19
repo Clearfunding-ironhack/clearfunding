@@ -33,8 +33,12 @@ const userSchema = new mongoose.Schema(
   DNI: {
     type: String,
   },
-  LatchId: {
-    type: String,
+  latchId: {
+    type: String
+  },
+  paired: {
+    type: Boolean,
+    default: false
   },
   campaignsFollowed: [{
     type: mongoose.Schema.Types.ObjectId,

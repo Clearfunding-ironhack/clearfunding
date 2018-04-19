@@ -11,7 +11,8 @@ router.get('/:id', userController.get);
 router.put('/:id', userController.edit);
 router.put('/:id/password', userController.changePassword)
 router.delete('/:id', userController.delete);
-router.get('/:id/latch', userController.pairLatch);
+router.put('/:id/latch', userController.pairLatch);
+router.get('/:id/latch', userController.unpairLatch);
 
 
 module.exports = router;

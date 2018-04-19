@@ -50,6 +50,9 @@ const campaignSchema = new mongoose.Schema(
     index: '2dsphere',
     default: []
   },
+  abstract:{
+    type: String
+  },
   dueDate: {
     type: Date
   },
