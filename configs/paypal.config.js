@@ -1,4 +1,5 @@
 const paypal = require('paypal-rest-sdk');
+const HOST = process.env.HEROKU_HOST || "http://localhost:3000";
 
 module.exports.configure = ({
     'mode': 'sandbox', //sandbox or live
@@ -15,8 +16,8 @@ module.exports.createPayment = (newDonation) => {
         "payment_method": "paypal"
     },
     "redirect_urls": {
-        "return_url": "http://localhost:3000/donations/success",
-        "cancel_url": "http://localhost:3000/cancel"
+        "return_url": `${HOST}/donations/success`,
+        "cancel_url": `${HOST}/cancel`
     },
     "transactions": [{
         "item_list": {

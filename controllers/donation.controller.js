@@ -86,7 +86,8 @@ module.exports.pay = (req, res, next) => {
                   new: true
                 })
                 .then(() => res.status(201).json({
-                    message: 'Success'
+                    message: 'Success',
+                    paypalLink: payment.links[i].href
                   }))
                 .catch(error => {
                     res.status(500)
