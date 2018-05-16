@@ -1,6 +1,8 @@
 const nodemailer = require('nodemailer');
 const FROM = 'clearfundingproject@gmail.com';
 
+
+
 module.exports.transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,

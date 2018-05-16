@@ -85,19 +85,22 @@ module.exports.forgot = (req, res, next) => {
           mailer.emailNotifier(to, subject, html);
           // redirigir a login
           //enviar email diciendo que no se ha encontrado el usuario  
+        } else {
+          user.resetPasswordToken = token;
+          user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+          user.save()
+            .then(() => {
+              let html = `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p> Please click on the following link, or paste this into your browser to complete the process:
+              'http://${PROVIDER}/sessions/reset/${token}'</p><p> If you did not request this, please ignore this email and your password will remain unchanged.</p>`;
+              mailer.emailNotifier(to, subject, html);
+              res.status(201).json('Email sent');
+            })
+            .catch(error => next(error));
         }
-       
-        user.resetPasswordToken = token;
-      
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-        user.save();
-        let html = `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p> Please click on the following link, or paste this into your browser to complete the process:
-        'http://${PROVIDER}/sessions/reset/${token}'</p><p> If you did not request this, please ignore this email and your password will remain unchanged.</p>`;
-        mailer.emailNotifier(to, subject, html);
-        res.status(201).json('Email sent');
-      }) 
+      })
       .catch(error => next(error))
     )
+    .catch(error => next(error))
   }
  
   
@@ -106,7 +109,7 @@ module.exports.reset = (req, res, next) => {
         .then( user => {
           if(!user) {
             console.log('Password reset token is invalid or has expired.');
-              //redirigir a algun lado;
+            res.status(400).json(new ApiError('User not found', 500))
           }
           else {
             user.password = req.body.password;
@@ -120,7 +123,7 @@ module.exports.reset = (req, res, next) => {
               mailer.emailNotifier(to, subject, html, user);
               res.status(201).json('Email sent')
             })
-            .catch(error => console.log(error))
+            .catch(error => next(error))
           }
         })
         .catch ( error => next(error))

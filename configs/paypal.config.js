@@ -16,8 +16,8 @@ module.exports.createPayment = (newDonation) => {
         "payment_method": "paypal"
     },
     "redirect_urls": {
-        "return_url": `${HOST}/donations/success`,
-        "cancel_url": `${HOST}/cancel`
+        "return_url": `http://localhost:3000/donations/success`,
+        "cancel_url": `http://localhost:3000/cancel`
     },
     "transactions": [{
         "item_list": {

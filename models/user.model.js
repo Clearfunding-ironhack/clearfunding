@@ -5,12 +5,8 @@ const SALT_WORK_FACTOR = 10;
 
 const userSchema = new mongoose.Schema(
 {
-  username: {
-    type: String,
-  },
-  email: {
-    type: String,
-  },
+  username: String,
+  email: String,
   password: {
     type: String,
     required: true,
@@ -28,13 +24,13 @@ const userSchema = new mongoose.Schema(
     enum: INTEREST_TYPES
   }],
   PayerID: {
-    type: String,
+    type: String
   },
   DNI: {
-    type: String,
+    type: String
   },
   LatchId: {
-    type: String,
+    type: String
   },
   campaignsFollowed: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -74,39 +70,26 @@ const userSchema = new mongoose.Schema(
 
 });
 
-
-
 userSchema.pre('save', function (next) {
   const user = this;
-  bcrypt.genSalt(SALT_WORK_FACTOR)
+  if (user.isModified('password')) {
+    bcrypt.genSalt(SALT_WORK_FACTOR)
       .then(salt => {
           bcrypt.hash(user.password, salt)
-              .then(hash => {
-                  user.password = hash;
-                  next();
-              });
+            .then(hash => {
+              user.password = hash;
+              next();
+            });
       })
       .catch(error => next(error));
+  } else {
+    next();
+  }
 });
-
-
 
 userSchema.methods.checkPassword = function (password) {
   return bcrypt.compare(password, this.password);
 };
-
-userSchema.methods.encryptPasswordAgain = function (password) {
-  return bcrypt.genSalt(SALT_WORK_FACTOR)
-      .then(salt => {
-          bcrypt.hash(password, salt)
-              .then(hash => {
-                  password = hash;
-              });
-      })
-      .catch(error => console.log(error));
-};
-
-
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;

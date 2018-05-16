@@ -52,6 +52,7 @@ module.exports.get = (req, res, next) => {
   console.log("hola")
   const id = req.params.id;
   Campaign.findById(id)
+    .populate('creator')
     .then(campaign => {
       console.log(campaign)
       if (campaign) {
@@ -105,9 +106,11 @@ module.exports.follow = (req, res, next) => {
   .then(() => {
    User.update({_id: req.user.id}, {$addToSet: { campaignsFollowed: id }})
    .then(() => {
-     res.status(204).json("User added to followers and campaign added to campaignsFollowed successfully")
+     Campaign.findById(id).then((campaign) => {
+      res.status(200).json({ message: campaign})
+     })
    })
-   .catch(error => console.log(error));
+   .catch(error => next(error));
  })
   .catch(error => {
     if (error instanceof mongoose.Error.ValidationError) {
