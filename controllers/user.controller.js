@@ -1,5 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
+const Campaign = require('../models/campaign.model');
 const User = require('../models/user.model');
 const passport = require('passport');
 const ApiError = require('../models/api-error.model');
@@ -52,6 +53,7 @@ module.exports.get = (req, res, next) => {
     .then(user => {
       if (user) {
         res.status(201).json(user)
+    
       } else {
         next(new ApiError("User not found", 404));
       }

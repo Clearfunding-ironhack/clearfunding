@@ -1,4 +1,5 @@
 require('dotenv').config();
+const Campaign = require('../models/campaign.model');
 const passport = require('passport');
 const ApiError = require('../models/api-error.model');
 const async = require('async');

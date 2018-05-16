@@ -3,6 +3,7 @@ const INTEREST_TYPES = require('./interest-types.js');
 const bcrypt = require('bcryptjs');
 const SALT_WORK_FACTOR = 10;
 
+
 const userSchema = new mongoose.Schema(
 {
   username: String,
@@ -10,7 +11,7 @@ const userSchema = new mongoose.Schema(
   password: {
     type: String,
     required: true,
-    min: [6, 'Too few characters. Stop changing the fucking password'],
+    min: [6, 'Too few characters'],
     max: 12
   },
   resetPasswordToken: String,
@@ -38,15 +39,15 @@ const userSchema = new mongoose.Schema(
   },
   campaignsFollowed: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Campaigns'
+    ref:'Campaign'
   }],
   campaignsBacked: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Campaigns'
+    ref:'Campaign'
   }],
   campaignsCreated: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Campaigns'
+    ref:'Campaign'
   }],
   committedAmount: {
     type: 'Number'
