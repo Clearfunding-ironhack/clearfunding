@@ -7,6 +7,7 @@ const upload = require('../configs/multer.config');
 
 router.post('/', upload.single('image'), secureMiddleware.isAuthenticated, campaignController.create);
 router.get('/', campaignController.list);
+router.get('/category', campaignController.getByCategory);
 router.get('/:id', campaignController.get);
 router.put('/:id', secureMiddleware.isAuthenticated, campaignController.edit);
 router.delete('/:id', secureMiddleware.isAuthenticated, campaignController.delete);

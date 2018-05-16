@@ -5,8 +5,7 @@ const mongoose = require('mongoose');
 const dateUtils = require('../utils/date.utils');
 
 module.exports.create = (req, res, next) => {
-  const latitude = req.body.latitude;
-  const longitude = req.body.longitude;
+
 
   if (req.file) {
     image = req.file.secure_url;
@@ -19,9 +18,9 @@ module.exports.create = (req, res, next) => {
       description: req.body.description,
       target: req.body.target,
       dueDate: req.body.dueDate,
-      location: [latitude, longitude],
       categories: req.body.categories,
-      creator: req.user.id
+      creator: req.user.id,
+      abstract: req.body.abstract
     })
   
   campaign.save()
@@ -58,6 +57,21 @@ module.exports.get = (req, res, next) => {
       if (campaign) {
         const remainingTime = dateUtils.getRemainingTime(campaign.dueDate);
         
+        res.status(201).json(campaign)
+      } else {
+        next(new ApiError("Campaign not found", 404));
+      }
+    }).catch(error => next(error));
+}
+
+module.exports.getByCategory = (req, res, next) => {
+  const category = req.query.category;
+  console.log(category)
+  Campaign.find({"categories": category})
+    .then(campaign => {
+      console.log(campaign)
+      if (campaign) {
+        console.log(campaign)
         res.status(201).json(campaign)
       } else {
         next(new ApiError("Campaign not found", 404));
