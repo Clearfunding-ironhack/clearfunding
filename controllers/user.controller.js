@@ -49,7 +49,7 @@ module.exports.list = (req, res, next) => {
 module.exports.get = (req, res, next) => {
   const id = req.params.id;
   User.findById(id)
-    .populate('campaignsBacked')
+    .populate('campaignsBacked').populate('campaignsCreated').populate('campaignsFollowed')
     .then(user => {
       if (user) {
         res.status(201).json(user)

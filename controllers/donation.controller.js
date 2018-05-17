@@ -178,7 +178,7 @@ function addAmountToCampaign(paymentToken, amount) {
             .then(campaign => {
               if (campaign) {
                 evaluateAchievement(campaign);
-                campaign.percentageAchieved = (campaign.amountRaised / campaign.target) * 100;
+                campaign.percentageAchieved = ((campaign.amountRaised / campaign.target) * 100).toFixed(2);
                 console.log(campaign);
                 campaign.save()
                   .then(() => {
